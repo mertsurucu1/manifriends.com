@@ -1,5 +1,4 @@
 // Peri Hokeyi - Air Hockey Game
-// ============================================
 
 // Firebase Config
 const firebaseConfig = {
@@ -23,9 +22,7 @@ try {
     console.warn('Firebase initialization failed:', e);
 }
 
-// ============================================
 // GAME CONFIG
-// ============================================
 const CONFIG = {
     offlineWinScore: 4,  // vs AI
     onlineWinScore: 7,   // PvP
@@ -47,9 +44,7 @@ const CONFIG = {
     ]
 };
 
-// ============================================
 // GAME STATE
-// ============================================
 let gameMode = 'offline'; // 'offline' = vs AI, 'online' = PvP
 let playerNickname = '';
 let opponentNickname = '';
@@ -64,8 +59,8 @@ let gameState = {
     elapsedTime: 0,
     selectedChar: null,
     aiChar: null,
-    idleStartTime: 0,  // Track when puck became idle after goal
-    lastScorer: null   // 'player' or 'ai' - for idle puck direction
+    idleStartTime: 0,
+    lastScorer: null
 };
 
 // Get current win score based on mode
@@ -74,8 +69,8 @@ function getWinScore() {
 }
 
 let puck = { x: 0, y: 0, vx: 0, vy: 0 };
-let playerPaddle = { x: 0, y: 0, vx: 0, vy: 0, lastX: 0, lastY: 0 };  // Added velocity tracking
-let aiPaddle = { x: 0, y: 0, vx: 0, vy: 0, lastX: 0, lastY: 0 };      // Added velocity tracking
+let playerPaddle = { x: 0, y: 0, vx: 0, vy: 0 };
+let aiPaddle = { x: 0, y: 0, vx: 0, vy: 0 };
 let rinkRect = null;
 let animationId = null;
 let timerInterval = null;
@@ -83,9 +78,7 @@ let username = '';
 let stuckTimer = 0;
 let lastPuckPos = { x: 0, y: 0 };
 
-// ============================================
 // ONLINE MULTIPLAYER STATE
-// ============================================
 let playerId = null;          // Unique player ID
 let roomId = null;            // Current room ID
 let isHost = false;           // Host controls puck physics
@@ -102,9 +95,7 @@ let onlineState = {
 
 const $ = id => document.getElementById(id);
 
-// ============================================
 // MODE SELECTION & NICKNAME
-// ============================================
 function initModeSelect() {
     $('offlineBtn').onclick = () => selectMode('offline');
     $('onlineBtn').onclick = () => selectMode('online');
@@ -226,9 +217,7 @@ function updateCharSelectUI() {
     });
 }
 
-// ============================================
 // CHARACTER SELECTION
-// ============================================
 function initCharacterSelect() {
     const grid = $('charGrid');
 
@@ -298,9 +287,7 @@ function getRandomAICharacter() {
     return available[Math.floor(Math.random() * available.length)];
 }
 
-// ============================================
 // GAME INITIALIZATION
-// ============================================
 async function startGameWithCountdown() {
     const overlay = $('countdownOverlay');
     const numberEl = $('countdownNumber');
@@ -454,9 +441,7 @@ function resetPositions(lastScorer = null) {
     updatePaddlePositions();
 }
 
-// ============================================
 // CONTROLS
-// ============================================
 function setupControls() {
     const rink = $('rink');
 
@@ -493,9 +478,7 @@ function setupControls() {
     rink.addEventListener('touchstart', handleMove, { passive: false });
 }
 
-// ============================================
 // GAME LOOP
-// ============================================
 function gameLoop() {
     if (!gameState.isPlaying) return;
 
@@ -610,9 +593,7 @@ function updateAI() {
     let targetY = homeY;
     let speed = CONFIG.aiSpeed;
 
-    // ========================================
     // STUCK DETECTION - If puck hasn't moved much, increment timer
-    // ========================================
     const puckMoved = Math.hypot(puck.x - lastPuckPos.x, puck.y - lastPuckPos.y);
     lastPuckPos.x = puck.x;
     lastPuckPos.y = puck.y;
@@ -623,9 +604,7 @@ function updateAI() {
         stuckTimer = 0;
     }
 
-    // ========================================
     // FORCE RESCUE - Puck stuck too long, charge at it!
-    // ========================================
     const isStuck = stuckTimer > 45; // ~0.75 seconds at 60fps
     const distToPuck = Math.hypot(puck.x - aiPaddle.x, puck.y - aiPaddle.y);
     const aiAbovePuck = aiPaddle.y < puck.y - 5; // AI is above puck
@@ -639,48 +618,39 @@ function updateAI() {
         speed = CONFIG.aiSpeed * 2.5;
 
     } else if (puckInAIHalf && puckSpeed < 3) {
-        // ===== SLOW PUCK: Two-phase approach =====
-        // Phase 1: Get ABOVE the puck (between puck and AI's goal)
-        // Phase 2: Push DOWN toward player's goal
-
+        // Slow puck: position above then push
         if (!aiAbovePuck || distToPuck > CONFIG.paddleRadius + CONFIG.puckRadius + 50) {
-            // Phase 1: Position above puck
             targetX = puck.x;
             targetY = Math.max(minY, puck.y - CONFIG.paddleRadius - 20);
             speed = CONFIG.aiSpeed * 1.5;
         } else {
-            // Phase 2: We're above - now push DOWN
             targetX = puck.x;
-            targetY = puck.y + CONFIG.paddleRadius; // Go through the puck
+            targetY = puck.y + CONFIG.paddleRadius;
             speed = CONFIG.aiSpeed * 2.0;
         }
 
     } else if (puckInAIHalf && puckSpeed >= 3) {
-        // ===== MOVING PUCK: Intercept but stay above =====
+        // Moving puck: intercept from above
         const px = puck.x + puck.vx * 8;
         const py = puck.y + puck.vy * 8;
-
-        // Try to intercept from above
         targetX = px;
         targetY = Math.max(minY, py - CONFIG.paddleRadius * 0.5);
         speed = CONFIG.aiSpeed * 1.5;
 
     } else if (puck.vy < -4) {
-        // ===== INCOMING: Prepare to block =====
+        // Incoming puck: prepare to block
         targetX = puck.x + puck.vx * 15;
         targetY = homeY;
         speed = CONFIG.aiSpeed * 1.2;
 
     } else {
-        // ===== IDLE: Stay near home, track puck X =====
+        // Idle: track puck position
         targetX = homeX + (puck.x - centerX) * 0.3;
         targetY = homeY;
         speed = CONFIG.aiSpeed * 0.6;
     }
 
-    // ========================================
-    // CLAMP & MOVE
-    // ========================================
+    // Move to target
     targetX = Math.max(minX, Math.min(maxX, targetX));
     targetY = Math.max(minY, Math.min(maxY, targetY));
 
@@ -691,8 +661,6 @@ function updateAI() {
     if (dist > 1) {
         const moveX = (dx / dist) * Math.min(speed, dist);
         const moveY = (dy / dist) * Math.min(speed, dist);
-
-        // Track velocity for realistic collision physics
         aiPaddle.vx = moveX;
         aiPaddle.vy = moveY;
 
@@ -734,47 +702,35 @@ function handlePaddleCollision(paddle) {
         gameState.idleStartTime = 0;
     }
 
-    // === REALISTIC PHYSICS ===
-    // Calculate collision angle (from paddle center to puck)
     const angle = Math.atan2(puck.y - paddle.y, puck.x - paddle.x);
-
-    // Get paddle velocity magnitude
     const paddleSpeed = Math.hypot(paddle.vx || 0, paddle.vy || 0);
-
-    // Get puck incoming speed
     const puckSpeed = Math.hypot(puck.vx, puck.vy);
 
-    // Momentum transfer: faster paddle = harder hit
-    // Base speed + paddle contribution + puck contribution
-    const momentumTransfer = 0.7;  // How much paddle speed transfers to puck
-    const puckRetention = 0.3;     // How much of puck's speed is retained
-
-    // Calculate new speed based on paddle movement and puck's incoming speed
+    // Momentum transfer
+    const momentumTransfer = 0.7;
+    const puckRetention = 0.3;
     let newSpeed = (paddleSpeed * momentumTransfer) + (puckSpeed * puckRetention);
 
-    // Add paddle velocity direction influence
-    // If paddle is moving toward the puck, add extra power
+    // Directional bonus
     const paddleAngle = Math.atan2(paddle.vy || 0, paddle.vx || 0);
     const angleDiff = Math.abs(angle - paddleAngle);
-    const directionalBonus = paddleSpeed * Math.cos(angleDiff) * 0.5;
-    newSpeed += Math.max(0, directionalBonus);
+    newSpeed += Math.max(0, paddleSpeed * Math.cos(angleDiff) * 0.5);
 
     // Apply limits
-    const minSpeed = CONFIG.puckSpeed * 0.5;   // Minimum speed
-    const maxSpeed = CONFIG.puckSpeed * 1.5;   // Maximum speed cap
+    const minSpeed = CONFIG.puckSpeed * 0.5;
+    const maxSpeed = CONFIG.puckSpeed * 1.5;
     newSpeed = Math.max(minSpeed, Math.min(maxSpeed, newSpeed));
 
-    // Set puck velocity in collision direction
     puck.vx = Math.cos(angle) * newSpeed;
     puck.vy = Math.sin(angle) * newSpeed;
 
-    // Add slight paddle velocity influence on direction
+    // Add paddle direction influence
     if (paddleSpeed > 2) {
         puck.vx += (paddle.vx || 0) * 0.3;
         puck.vy += (paddle.vy || 0) * 0.3;
     }
 
-    // Push puck outside paddle to prevent multiple collisions
+    // Separate puck from paddle
     const dist = CONFIG.puckRadius + CONFIG.paddleRadius + 2;
     puck.x = paddle.x + Math.cos(angle) * dist;
     puck.y = paddle.y + Math.sin(angle) * dist;
@@ -834,9 +790,7 @@ function scoreGoal(scorer) {
     }
 }
 
-// ============================================
 // UI UPDATES
-// ============================================
 function updatePuckPosition() {
     const puckEl = $('puck');
     puckEl.style.left = puck.x + 'px';
@@ -886,9 +840,7 @@ function formatTime(ms) {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-// ============================================
 // GAME END
-// ============================================
 async function endGame() {
     gameState.isPlaying = false;
     cancelAnimationFrame(animationId);
@@ -910,9 +862,7 @@ async function endGame() {
     }
 }
 
-// ============================================
 // LEADERBOARD - EN HIZLI KAYBEDENLER
-// ============================================
 async function saveToLeaderboard(timeMs) {
     if (!db) return;
 
@@ -977,9 +927,7 @@ async function displayLeaderboard() {
     }).join('');
 }
 
-// ============================================
 // INITIALIZATION
-// ============================================
 function init() {
     username = localStorage.getItem('manifriends_username') || '';
 
@@ -1034,9 +982,7 @@ function init() {
     // Resize handler removed - game dimensions stay fixed
 }
 
-// ============================================
 // SOUND SYSTEM
-// ============================================
 let audioCtx;
 let soundEnabled = true;
 
@@ -1141,9 +1087,7 @@ function initSoundButton() {
     });
 }
 
-// ============================================
 // ONLINE MULTIPLAYER
-// ============================================
 async function startMatchmaking() {
     // Show lobby instead of waiting modal
     $('charSelect').style.display = 'none';
@@ -1937,9 +1881,7 @@ function cleanupOnlineGame() {
     onlineState.opponentConnected = false;
 }
 
-// ============================================
 // PAUSE MENU (OFFLINE ONLY)
-// ============================================
 let isPaused = false;
 
 function pauseGame() {
@@ -1985,9 +1927,7 @@ function quitGame() {
     $('modeSelect').style.display = 'flex';
 }
 
-// ============================================
 // OPPONENT DISCONNECT HANDLING (ONLINE)
-// ============================================
 function handleOpponentDisconnect() {
     if (!gameState.isPlaying || gameMode !== 'online') return;
 

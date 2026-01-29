@@ -1,7 +1,5 @@
 // ManiFriends - Premium Web Game with Firebase Leaderboard
-// ============================================
 // FIREBASE CONFIGURATION
-// ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyBCcdSfQmPNsRHEi03k_iUcPQbNZbPHaJw",
     authDomain: "manifriends-a091a.firebaseapp.com",
@@ -21,9 +19,7 @@ try {
     console.warn('Firebase initialization failed:', e);
 }
 
-// ============================================
 // GAME CONFIG
-// ============================================
 const CONFIG = {
     levels: [
         { name: '1', radius: 26, color: '#ff6b9d', img: '../assets/1.png' },
@@ -51,9 +47,7 @@ const images = {};
 
 const $ = id => document.getElementById(id);
 
-// ============================================
 // FIREBASE / LEADERBOARD FUNCTIONS
-// ============================================
 
 // Save score to Firebase
 async function saveScore(username, newScore) {
@@ -151,9 +145,7 @@ async function displayLeaderboard() {
     }).join('');
 }
 
-// ============================================
 // USERNAME HANDLING
-// ============================================
 
 function setupUsernameModal() {
     const modal = $('usernameModal');
@@ -197,9 +189,7 @@ function submitUsername() {
     }
 }
 
-// ============================================
 // LEADERBOARD UI
-// ============================================
 
 function setupLeaderboardUI() {
     const btn = $('leaderboardBtn');
@@ -223,9 +213,7 @@ function setupLeaderboardUI() {
     });
 }
 
-// ============================================
 // IMAGE PRELOADING
-// ============================================
 
 function preloadImages() {
     return new Promise((resolve) => {
@@ -252,9 +240,7 @@ function preloadImages() {
     });
 }
 
-// ============================================
 // GAME INITIALIZATION
-// ============================================
 
 async function startGame() {
     // Show loading
@@ -762,9 +748,7 @@ function addSoundButton() {
     });
 }
 
-// ============================================
 // PAUSE / QUIT SYSTEM
-// ============================================
 let isPaused = false;
 
 function pauseGame() {
