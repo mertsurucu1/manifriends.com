@@ -695,12 +695,14 @@ async function acceptChallenge(challenge) {
     await db.ref(`hockey_matches/lobby/${playerId}`).remove();
     await db.ref(`hockey_matches/challenges/${playerId}`).remove();
 
-    await roomRef.child('state').set('playing');
 
     $('onlineLobby').classList.remove('active');
 
     setupRoomListeners();
     startWebRTCAsClient();
+
+    // Set state to 'playing' AFTER listeners are ready
+    await roomRef.child('state').set('playing');
 }
 
 async function declineChallenge(challenge) {
