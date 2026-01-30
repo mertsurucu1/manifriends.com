@@ -1,0 +1,12 @@
+# Clean URLs
+/fusion    /fusion/index.html    200
+/hockey    /hockey/index.html    200
+/hockey/offline    /hockey/offline.html    200
+/hockey/online    /hockey/online.html    200
+
+# Redirect old paths to clean URLs
+/index.html    /    301
+/fusion/index.html    /fusion    301
+/hockey/index.html    /hockey    301
+/hockey/offline.html    /hockey/offline    301
+/hockey/online.html    /hockey/online    301

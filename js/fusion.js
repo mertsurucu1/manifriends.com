@@ -801,7 +801,7 @@ async function quitGame() {
     gameOver = true;
 
     // Go back to homepage
-    window.location.href = '../index.html';
+    window.location.href = '/';
 }
 
 function setupPauseUI() {
@@ -816,7 +816,7 @@ function setupPauseUI() {
 
     // Home button (after game over)
     $('homeBtn').addEventListener('click', () => {
-        window.location.href = '../index.html';
+        window.location.href = '/';
     });
 }
 

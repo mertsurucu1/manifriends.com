@@ -1,0 +1,22 @@
+{
+    "name": "ManiFriends",
+    "short_name": "ManiFriends",
+    "description": "Eğlenceli online oyun portalı!",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1030",
+    "theme_color": "#7c3aed",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/assets/favicon.png",
+            "sizes": "64x64",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/1.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}
